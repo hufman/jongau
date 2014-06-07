@@ -1,0 +1,4 @@
+git+https://github.com/hufman/wsgi_webid.git
+git+https://github.com/hufman/flask_rdf.git
+
+Flask==0.10.1
