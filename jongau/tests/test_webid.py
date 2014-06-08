@@ -1,11 +1,9 @@
-import tempfile
-import unittest
 import jongau.identity
 import jongau.webid
 import jongau.app as app
 app = app.app
 import rdflib
-import os
+from jongau.tests._common import TestSession
 #rdflib.plugin.register('sparql', rdflib.query.Processor,
 #                       'rdfextras.sparql.processor', 'Processor')
 #rdflib.plugin.register('sparql', rdflib.query.Result,
@@ -23,28 +21,7 @@ namespaces = {
 }
 
 
-class TestWebid(unittest.TestCase):
-	def setUp(self):
-		self.tempfiles = []
-		(fd, self.settings_filename) = tempfile.mkstemp()
-		os.close(fd)
-		open(self.settings_filename, 'w').close()
-		self.tempfiles.append(self.settings_filename)
-		jongau.settings = jongau.settings_modules.JsonSettings(self.settings_filename)
-
-	def tearDown(self):
-		for key in jongau.settings.keys:
-			path = os.path.join(jongau.settings.key_dir, key['filename'])
-			self.tempfiles.append(path)
-		for cert in jongau.settings.certificates:
-			path = os.path.join(jongau.settings.key_dir, cert['filename'])
-			self.tempfiles.append(path)
-		for filename in self.tempfiles:
-			try:
-				os.unlink(filename)
-			except:
-				pass
-
+class TestWebid(TestSession):
 	def test_singlekey(self):
 		jongau.identity.create_new_key()
 		self.assertEqual(1, len(jongau.settings.keys))
