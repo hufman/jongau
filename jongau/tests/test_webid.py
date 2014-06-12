@@ -4,6 +4,8 @@ import jongau.app as app
 app = app.app
 import rdflib
 from jongau.tests._common import TestSession
+import httmock
+from flask_rdf import flask_rdf
 #rdflib.plugin.register('sparql', rdflib.query.Processor,
 #                       'rdfextras.sparql.processor', 'Processor')
 #rdflib.plugin.register('sparql', rdflib.query.Result,
@@ -51,3 +53,30 @@ class TestWebid(TestSession):
 				query = 'SELECT ?user WHERE { ?user cert:key ?key . ?key cert:modulus "%s"^^xsd:hexBinary . }' % modulus
 				res = graph.query(query, initNs=namespaces)
 				self.assertEqual(1, len(res))
+
+	def test_query(self):
+		@httmock.all_requests
+		@flask_rdf
+		def rdf_mock(url, request):
+			if 'foaf' in url: return rdf_mock_foaf(url, request)
+			if 'webid' in url: return rdf_mock_webid(url, request)
+		def rdf_mock_webid(url, request):
+			graph = Graph('IOMemory', BNode())
+			graph.add((URIRef(url), RDF.sameAs, URIRef(url+"/foaf")))
+			return graph
+		def rdf_mock_foaf(url, request):
+			graph = Graph('IOMemory', BNode())
+			graph.add((URIRef(url), FOAF.name, Literal('Test')))
+			return graph
+
+		jongau.identity.create_new_key()
+		with httmock.HTTMock(rdf_mock):
+			graph = jongau.webid.fetch_rdf('http://example/foaf')
+			self.assertTrue(1, len(graph))
+			graph = jongau.webid.fetch_rdf('http://example/webid')
+			self.assertTrue(1, len(graph))
+			graph = jongau.webid.fetch_webid('http://example/webid')
+			self.assertTrue(2, len(graph))
+
+	def test_server_root(self):
+		self.assertEqual('http://example', jongau.webid.get_server_root('http://example/webid/test'))
