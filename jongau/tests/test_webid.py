@@ -1,7 +1,7 @@
 import jongau.identity
 import jongau.webid
-import jongau.app as app
-app = app.app
+import jongau.flask.webid
+from jongau.flask import app
 import rdflib
 from jongau.tests._common import TestSession
 import httmock
@@ -28,7 +28,7 @@ class TestWebid(TestSession):
 		jongau.identity.create_new_key()
 		self.assertEqual(1, len(jongau.settings.keys))
 		with app.test_request_context('/webid/sevzi'):
-			response = jongau.webid.webid_self()
+			response = jongau.flask.webid.webid_self()
 			data = response.get_data()
 			graph = rdflib.Graph()
 			graph.parse(data=data, format='xml')
@@ -43,7 +43,7 @@ class TestWebid(TestSession):
 		jongau.identity.create_new_key()
 		self.assertEqual(2, len(jongau.settings.keys))
 		with app.test_request_context('/webid/sevzi', headers=[('Accept', 'text/turtle')]):
-			response = jongau.webid.webid_self()
+			response = jongau.flask.webid.webid_self()
 			data = response.get_data()
 			graph = rdflib.Graph()
 			graph.parse(data=data, format='turtle')

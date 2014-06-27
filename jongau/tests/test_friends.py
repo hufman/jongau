@@ -3,10 +3,11 @@ import rdflib
 import httmock
 import logging
 import jongau.friends
+import jongau.flask.friends
 import jongau.identity
 import jongau.webid
-import jongau.app as app
-app = app.app
+import jongau.flask.webid
+from jongau.flask import app
 from jongau.tests._common import TestSession
 from flask import g, request
 #rdflib.plugin.register('sparql', rdflib.query.Processor,
@@ -193,7 +194,7 @@ class TestFriends(TestPersistentClient):
 		webid = 'http://remote.com/webid/sevzi#subject'
 		with app.test_request_context('/cpecru'):
 			app.preprocess_request()
-			resp = jongau.friends.request_friend()
+			resp = jongau.flask.friends.request_friend()
 			self.assertEqual(401, resp[1])
 			for rel in ['friends', 'following', 'pending_friends',
 				    'pending_following']:
@@ -205,7 +206,7 @@ class TestFriends(TestPersistentClient):
 			request.environ['webid.valid'] = True
 			request.environ['webid.uri'] = webid
 			app.preprocess_request()
-			resp = jongau.friends.request_friend()
+			resp = jongau.flask.friends.request_friend()
 			self.assertEqual(200, resp[1])
 
 			for rel in ['friends', 'following', 'pending_friends',
@@ -219,7 +220,7 @@ class TestFriends(TestPersistentClient):
 		webid = 'http://remote.com/webid/sevzi#subject'
 		with app.test_request_context('/xukahecru'):
 			app.preprocess_request()
-			response = jongau.friends.check_friendship()
+			response = jongau.flask.friends.check_friendship()
 			self.assertEqual(401, response[1])
 
 	def test_friendship_status_false(self):
@@ -228,7 +229,7 @@ class TestFriends(TestPersistentClient):
 			request.environ['webid.valid'] = True
 			request.environ['webid.uri'] = webid
 			app.preprocess_request()
-			response = jongau.friends.check_friendship()
+			response = jongau.flask.friends.check_friendship()
 			self.assertEqual(403, response[1])
 
 	def test_friendship_status_true(self):
@@ -242,7 +243,7 @@ class TestFriends(TestPersistentClient):
 			request.environ['webid.valid'] = True
 			request.environ['webid.uri'] = webid
 			app.preprocess_request()
-			response = jongau.friends.check_friendship()
+			response = jongau.flask.friends.check_friendship()
 			self.assertEqual(200, response[1])
 		jongau.friends.delete_friend(webid)
 		self.assertEqual(2, len(self.remote_requests))
